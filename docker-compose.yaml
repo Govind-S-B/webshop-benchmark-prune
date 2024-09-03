@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  webshop-app:
+    build:
+      context: ./main_app
+      args:
+        DATASET_SIZE: ${DATASET_SOURCE}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./user_session_logs:/app/user_session_logs 
+      - ./data:/app/data
+    environment:
+      DATASET_SOURCE: "small" # Could be small | all
+      PRODUCT_CATALOGUE_SIZE: "" # Could be empty string or int
+
+  log-observer:
+    build:
+      context: ./observer_service
+    volumes:
+      - ./user_session_logs:/observer/user_session_logs
+    environment:
+      BASE_URL: "http://localhost:3000"
+      SESSION_ID_START: 0
+      SESSION_ID_END: 1000
+    depends_on:
+      - webshop-app
