@@ -13,6 +13,9 @@ COPY . .
 # change small to all when you want to load the entire dataset
 ARG DATASET_SIZE=small
 
+# Debugging: Print the DATASET_SIZE value
+RUN echo "DATASET_SIZE is set to ${DATASET_SIZE}"
+
 # Create and activate the conda environment, and run the setup script
 RUN conda create -n webshop python=3.8.13 && \
     /bin/bash -c "source activate webshop && chmod +x setup.sh && ./setup.sh -d ${DATASET_SIZE}"

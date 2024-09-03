@@ -5,7 +5,7 @@ services:
     build:
       context: ./main_app
       args:
-        DATASET_SIZE: ${DATASET_SOURCE}
+        DATASET_SIZE: "small"
     ports:
       - "3000:3000"
     volumes:
