@@ -4,8 +4,6 @@ services:
   webshop-app:
     build:
       context: ./main_app
-      args:
-        DATASET_SIZE: "small"
     ports:
       - "3000:3000"
     volumes:
