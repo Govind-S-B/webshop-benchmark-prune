@@ -64,4 +64,5 @@ if [ "$dataset_state_change" = false ]; then
 
 fi
 
-./run_dev.sh
+export FLASK_ENV=development
+python -m web_agent_site.app --log --attrs
