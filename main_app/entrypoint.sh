@@ -6,6 +6,12 @@ if [ -z "$data" ]; then
   exit 1 # Exit script if the environment variable is not set
 fi
 
+# Ensure the data directory is initialized
+mkdir -p data
+if [ ! -f "data/prev_DATASET_SOURCE" ]; then
+  echo "none" > data/prev_DATASET_SOURCE
+fi
+
 # Check if the previous dataset source is the same as the current one
 prev_data=$(cat data/prev_DATASET_SOURCE)
 
@@ -18,7 +24,7 @@ else
   dataset_state_change=true
 fi
 
-if [ "$dataset_state_change" = false ]; then
+if [ "$dataset_state_change" = true ]; then
 
   # Change to the data directory
   cd data
@@ -26,6 +32,14 @@ if [ "$dataset_state_change" = false ]; then
   # Check if the file items_human_ins.json exists, if not download it
   if [ ! -f "items_human_ins.json" ]; then
     gdown https://drive.google.com/uc?id=14Kb5SPBk_jfdLZ_CDBNitW98QLDlKR5O
+    if [ -f "items_human_ins.json" ]; then
+      echo "[INFO]: Successfully downloaded items_human_ins.json"
+    else
+      echo "[ERROR]: Failed to download items_human_ins.json"
+      exit 1
+    fi
+  else
+    echo "[INFO]: items_human_ins.json already exists"
   fi
 
   # Define a function to download a file if it does not exist
@@ -34,6 +48,14 @@ if [ "$dataset_state_change" = false ]; then
     local url=$2
     if [ ! -f "$file" ]; then
       gdown $url
+      if [ -f "$file" ]; then
+        echo "[INFO]: Successfully downloaded $file"
+      else
+        echo "[ERROR]: Failed to download $file"
+        exit 1
+      fi
+    else
+      echo "[INFO]: $file already exists"
     fi
   }
 

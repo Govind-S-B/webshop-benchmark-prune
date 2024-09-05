@@ -11,7 +11,6 @@ conda install -y -c pytorch faiss-cpu
 conda install -y -c conda-forge openjdk=11
 
 mkdir -p data;
-echo "none" > data/prev_DATASET_SOURCE
 
 # Download spaCy large NLP model
 python -m spacy download en_core_web_sm
