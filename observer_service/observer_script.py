@@ -5,8 +5,12 @@ import os
 from bs4 import BeautifulSoup
 
 # Fetch the BASE_URL from the environment variable, with a default value if not set
-BASE_URL = os.environ.get("BASE_URL", "http://localhost:3000")
+BASE_URL = os.environ.get("INTERNAL_URL", "http://localhost:3000")
+DISPLAY_URL = os.environ.get("EXTERNAL_ACCESS_URL", "http://localhost:3000")
 LOG_DIR = "user_session_logs/mturk"
+
+def generate_display_url(session_id):
+    return f"{DISPLAY_URL}/{session_id}"
 
 def generate_url(session_id):
     return f"{BASE_URL}/{session_id}"
@@ -32,7 +36,7 @@ def monitor_log(session_id):
                     last_log = json.loads(logs[-1])
                     if last_log.get('page') == 'done':
                         print(f"User reached end state for session {session_id}")
-                        print("stop")
+                        print("stop") # [API REQ] this will in production call and API to my server to terminate a task
                         break
         time.sleep(1)
 
@@ -64,11 +68,11 @@ def main():
     session_ids = generate_session_ids(session_id_start, session_id_end)  # Use environment variables
     for session_id in session_ids:
         print(f"Running session: {session_id}")
-        url = generate_url(session_id)
-        print(f"Generated URL: {url}")
+        url = generate_display_url(session_id)
+        print(f"Generated URL: {url}") # [API REQ] this will in production make an API call to my server to init a task
         instruction = fetch_instruction(session_id)
         if instruction:
-            print(f"Instruction for {session_id}: {instruction}")
+            print(f"Instruction for {session_id}: {instruction}") # [API REQ] this will also go with the above mentioned API call
         else:
             print(f"Failed to fetch instruction for {session_id}")
 

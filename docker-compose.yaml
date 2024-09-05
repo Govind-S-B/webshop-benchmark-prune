@@ -19,7 +19,8 @@ services:
     volumes:
       - ./user_session_logs:/observer/user_session_logs
     environment:
-      BASE_URL: "http://localhost:3000"
+      INTERNAL_URL: "http://webshop-app:3000"
+      EXTERNAL_ACCESS_URL: "http://localhost:3000"
       SESSION_ID_START: 0
       SESSION_ID_END: 1000
     depends_on:
