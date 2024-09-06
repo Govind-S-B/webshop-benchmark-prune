@@ -1,19 +1,18 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 import threading
 import time
 import os
 import shutil
+
+import requests
+import json
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
 # Global variables for observer state
 observer_running = False
 observer_thread = None
-
-
-import requests
-import json
-from bs4 import BeautifulSoup
 
 log_directory = "user_session_logs/mturk"
 BASE_URL = os.environ.get("INTERNAL_URL", "http://localhost:3000")
@@ -134,7 +133,6 @@ def save_session():
     
     return jsonify({"status": f"session saved as {name}"}), 200
 
-# this is not returning a zip file
 @app.route('/get', methods=['GET'])
 def get_session():
     """
@@ -145,7 +143,7 @@ def get_session():
     target_directory = os.path.join(log_directory, "../", name)
     archive_name = shutil.make_archive(target_directory, 'zip', target_directory)
     
-    return jsonify({"status": f"session {name} archived", "archive": archive_name}), 200
+    return send_file(archive_name, as_attachment=True, attachment_filename=f"{name}.zip")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
