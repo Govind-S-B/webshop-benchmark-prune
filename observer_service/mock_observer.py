@@ -9,12 +9,50 @@ app = Flask(__name__)
 # Global variables for observer state
 observer_running = False
 observer_thread = None
+
+
+import requests
+import json
+from bs4 import BeautifulSoup
+
 log_directory = "user_session_logs/mturk"
+BASE_URL = os.environ.get("INTERNAL_URL", "http://localhost:3000")
+DISPLAY_URL = os.environ.get("EXTERNAL_ACCESS_URL", "http://localhost:3000")
+
+def generate_display_url(session_id):
+    return f"{DISPLAY_URL}/{session_id}"
+
+def generate_url(session_id):
+    return f"{BASE_URL}/{session_id}"
+
+def fetch_instruction(session_id):
+    url = generate_url(session_id)
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
+        instruction_div = soup.find('div', id='instruction-text')
+        if instruction_div:
+            instruction_text = instruction_div.find('h4').get_text(strip=True)
+            return instruction_text.replace('Instruction: ', '')
+    return None
+
+def monitor_log(session_id):
+    log_file = os.path.join(log_directory, f"{session_id}.jsonl")
+    while observer_running:
+        if os.path.exists(log_file):
+            with open(log_file, 'r') as f:
+                logs = f.readlines()
+                if logs:
+                    last_log = json.loads(logs[-1])
+                    if last_log.get('page') == 'done':
+                        print(f"User reached end state for session {session_id}")
+                        print("stop") # [API REQ] this will in production call an API to my server to terminate a task
+                        break
+        time.sleep(1)
 
 def observer_task(start, end):
     """
-    Function to simulate log monitoring.
-    It processes session IDs from start to end.
+    Function to monitor logs and process session IDs from start to end.
     """
     global observer_running
     observer_running = True
@@ -23,8 +61,19 @@ def observer_task(start, end):
     for session_id in session_ids:
         if not observer_running:
             break
-        print(f"Processing session: {session_id}")
-        time.sleep(1)  # Simulate log processing
+        print(f"Running session: {session_id}")
+        url = generate_display_url(session_id)
+        print(f"Generated URL: {url}") # [API REQ] this will in production make an API call to my server to init a task
+        instruction = fetch_instruction(session_id)
+        if instruction:
+            print(f"Instruction for {session_id}: {instruction}") # [API REQ] this will also go with the above mentioned API call
+        else:
+            print(f"Failed to fetch instruction for {session_id}")
+
+        print("Waiting for user to navigate...")
+        monitor_log(session_id)
+
+        print("Moving to next session")
     observer_running = False
     print("Observer task completed.")
 
@@ -85,6 +134,7 @@ def save_session():
     
     return jsonify({"status": f"session saved as {name}"}), 200
 
+# this is not returning a zip file
 @app.route('/get', methods=['GET'])
 def get_session():
     """
