@@ -143,7 +143,7 @@ def get_session():
     target_directory = os.path.join(log_directory, "../", name)
     archive_name = shutil.make_archive(target_directory, 'zip', target_directory)
     
-    return send_file(archive_name, as_attachment=True, attachment_filename=f"{name}.zip")
+    return send_file(archive_name, as_attachment=True, download_name=f"{name}.zip")
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
