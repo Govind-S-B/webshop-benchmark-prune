@@ -12,5 +12,7 @@ COPY . .
 # Install necessary Python packages
 RUN pip install -r requirements.txt
 
+EXPOSE 5000
+
 # Start the observer script
 CMD ["python", "-u", "observer_script.py"]
