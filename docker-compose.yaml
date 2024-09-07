@@ -19,7 +19,8 @@ services:
       - ./user_session_logs:/observer/user_session_logs
     environment:
       INTERNAL_URL: "http://webshop-app:3000"
-      EXTERNAL_ACCESS_URL: "http://localhost:3000"
+      EXTERNAL_ACCESS_URL: "https://webshop.nfig.ai"
+      NFIG_API_KEY: ${NFIG_API_KEY}
     ports:
       - "5000:5000"
     depends_on:

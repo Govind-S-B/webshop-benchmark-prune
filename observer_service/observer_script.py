@@ -35,6 +35,46 @@ def fetch_instruction(session_id):
             return instruction_text.replace('Instruction: ', '')
     return None
 
+
+API_KEY = os.environ.get('NFIG_API_KEY')
+
+def create_workflow(goal):
+    url = "https://api-dev.nfig.ai/external-apis/request/workflow/autonomous/create"
+    headers = {
+        'api-key': API_KEY,
+        'Content-Type': 'application/json'
+    }
+    data = {
+        "goal": goal
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json().get("workflowId")
+    return None
+
+def run_workflow(workflow_id):
+    url = "https://api-dev.nfig.ai/external-apis/request/workflow/autonomous/run"
+    headers = {
+        'api-key': API_KEY,
+        'Content-Type': 'application/json'
+    }
+    data = {
+        "workflowId": workflow_id
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json().get("sessionId")
+    return None
+
+def stop_workflow(session_id, workflow_id):
+    url = f"https://api-dev.nfig.ai/external-apis/request/workflow/autonomous/stop/{session_id}"
+    headers = {
+        'api-key': API_KEY,
+        'Content-Type': 'application/json',
+    }
+    response = requests.post(url, headers=headers)
+    return response.status_code == 200
+
 def monitor_log(session_id):
     log_file = os.path.join(log_directory, f"{session_id}.jsonl")
     while observer_running:
@@ -46,6 +86,9 @@ def monitor_log(session_id):
                     if last_log.get('page') == 'done':
                         print(f"User reached end state for session {session_id}")
                         print("stop") # [API REQ] this will in production call an API to my server to terminate a task
+
+                        stop_fn_using(nfig_session_id)
+
                         break
         time.sleep(1)
 
@@ -63,11 +106,19 @@ def observer_task(start, end):
         print(f"Running session: {session_id}")
         url = generate_display_url(session_id)
         print(f"Generated URL: {url}") # [API REQ] this will in production make an API call to my server to init a task
+
+        workflow_id = create_workflow(f"Go to {url} and follow the instruction mentioned there to complete the order on the platform ")
+
         instruction = fetch_instruction(session_id)
         if instruction:
             print(f"Instruction for {session_id}: {instruction}") # [API REQ] this will also go with the above mentioned API call
+
+            # workflow_id = create_workflow() # make details of ur transacton 
+
         else:
             print(f"Failed to fetch instruction for {session_id}")
+
+        nfig_session_id = run_workflow(workflow_id)
 
         print("Waiting for user to navigate...")
         monitor_log(session_id)

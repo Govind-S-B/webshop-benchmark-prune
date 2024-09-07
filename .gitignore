@@ -16,3 +16,5 @@ search_engine/resources*
 transfer/flagged
 
 *_err_*.log
+
+.env
