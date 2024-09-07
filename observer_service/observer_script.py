@@ -117,13 +117,12 @@ def monitor_log(nfig_session_id, session_id):
 
         time.sleep(1)
 
-def observer_task(start, end):
+def observer_task(session_ids):
     """
-    Function to monitor logs and process session IDs from start to end.
+    Function to monitor logs and process session IDs.
     """
     global observer_running
     observer_running = True
-    session_ids = [f"fixed_{i}" for i in range(start, end + 1)]
     
     for session_id in session_ids:
         if not observer_running:
@@ -160,7 +159,7 @@ def observer_task(start, end):
     observer_running = False
     print("Observer task completed.")
     write_csv()
-
+    
 def clear_session_details():
     """
     Function to clear the session details list.
@@ -180,9 +179,13 @@ def start_observer():
 
     clear_session_details()  # Clear session details before starting a new task
 
-    start = int(request.json.get("start", 0))
-    end = int(request.json.get("end", 1000))
-    observer_thread = threading.Thread(target=observer_task, args=(start, end))
+    session_ids = request.json.get("session_ids")
+    if not session_ids:
+        start = int(request.json.get("start", 0))
+        end = int(request.json.get("end", 1000))
+        session_ids = [f"fixed_{i}" for i in range(start, end + 1)]
+
+    observer_thread = threading.Thread(target=observer_task, args=(session_ids,))
     observer_thread.start()
     return jsonify({"status": "started"}), 200
 

@@ -8,4 +8,6 @@ next step in pipeline  write script to get both data and tabulate them , make 2 
 
 shift to logic to load userids to process than using ranges , or a fallabcke to ranges if not resovled
 
-file dump  reason of stoping as well - stop endpoint , full completion , timeout
+file dump  reason of stoping as well - stop endpoint , full completion
+
+add timeout support to API docs relevant to stopping , session id list for start endpoint supposrt add to API docs
