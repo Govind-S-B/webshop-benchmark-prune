@@ -93,6 +93,9 @@ def write_csv():
 
 def monitor_log(nfig_session_id, session_id):
     log_file = os.path.join(log_directory, f"{session_id}.jsonl")
+    start_time = time.time()
+    timeout = 5 * 60  # 5 minutes in seconds
+
     while observer_running:
         if os.path.exists(log_file):
             with open(log_file, 'r') as f:
@@ -104,8 +107,14 @@ def monitor_log(nfig_session_id, session_id):
                         print("stop") # [API REQ] this will in production call an API to my server to terminate a task
 
                         stop_workflow(nfig_session_id)
-
                         break
+
+        # Check for timeout
+        if time.time() - start_time > timeout:
+            print(f"Timeout reached for session {session_id}")
+            stop_workflow(nfig_session_id)
+            break
+
         time.sleep(1)
 
 def observer_task(start, end):
