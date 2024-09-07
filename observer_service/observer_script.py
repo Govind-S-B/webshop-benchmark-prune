@@ -8,11 +8,15 @@ import requests
 import json
 from bs4 import BeautifulSoup
 
+import csv
+
 app = Flask(__name__)
 
 # Global variables for observer state
 observer_running = False
 observer_thread = None
+session_details = []  # List to store session details to write in csv
+
 
 log_directory = "user_session_logs/mturk"
 BASE_URL = os.environ.get("INTERNAL_URL", "http://localhost:3000")
@@ -66,7 +70,7 @@ def run_workflow(workflow_id):
         return response.json().get("sessionId")
     return None
 
-def stop_workflow(session_id, workflow_id):
+def stop_workflow(session_id):
     url = f"https://api-dev.nfig.ai/external-apis/request/workflow/autonomous/stop/{session_id}"
     headers = {
         'api-key': API_KEY,
@@ -75,7 +79,19 @@ def stop_workflow(session_id, workflow_id):
     response = requests.post(url, headers=headers)
     return response.status_code == 200
 
-def monitor_log(session_id):
+def write_csv():
+    """
+    Function to write session details to a CSV file.
+    """
+    global session_details
+    csv_file = os.path.join(log_directory, "session_details.csv")
+    with open(csv_file, mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=["session_id", "url", "nfig_session_id"])
+        writer.writeheader()
+        writer.writerows(session_details)
+    print(f"Session details written to {csv_file}")
+
+def monitor_log(nfig_session_id, session_id):
     log_file = os.path.join(log_directory, f"{session_id}.jsonl")
     while observer_running:
         if os.path.exists(log_file):
@@ -87,7 +103,7 @@ def monitor_log(session_id):
                         print(f"User reached end state for session {session_id}")
                         print("stop") # [API REQ] this will in production call an API to my server to terminate a task
 
-                        stop_fn_using(nfig_session_id)
+                        stop_workflow(nfig_session_id)
 
                         break
         time.sleep(1)
@@ -107,25 +123,34 @@ def observer_task(start, end):
         url = generate_display_url(session_id)
         print(f"Generated URL: {url}") # [API REQ] this will in production make an API call to my server to init a task
 
-        workflow_id = create_workflow(f"Go to {url} and follow the instruction mentioned there to complete the order on the platform ")
+        workflow_id = create_workflow(f"Go to {url} and follow the instruction mentioned there to complete the order on the platform")
 
         instruction = fetch_instruction(session_id)
         if instruction:
             print(f"Instruction for {session_id}: {instruction}") # [API REQ] this will also go with the above mentioned API call
 
-            # workflow_id = create_workflow() # make details of ur transacton 
+            # uncomment this section if you want to pass the actual instruction as well to goal
+            # workflow_id = create_workflow(f"Go to {url} and order the following product : {instruction}")
 
         else:
             print(f"Failed to fetch instruction for {session_id}")
 
         nfig_session_id = run_workflow(workflow_id)
 
+        # Append session details to the list
+        session_details.append({
+            "session_id": session_id,
+            "url": url,
+            "nfig_session_id": nfig_session_id
+        })
+
         print("Waiting for user to navigate...")
-        monitor_log(session_id)
+        monitor_log(nfig_session_id,session_id)
 
         print("Moving to next session")
     observer_running = False
     print("Observer task completed.")
+    write_csv()
 
 @app.route('/start', methods=['POST'])
 def start_observer():
