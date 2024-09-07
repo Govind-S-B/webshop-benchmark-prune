@@ -152,6 +152,13 @@ def observer_task(start, end):
     print("Observer task completed.")
     write_csv()
 
+def clear_session_details():
+    """
+    Function to clear the session details list.
+    """
+    global session_details
+    session_details = []
+
 @app.route('/start', methods=['POST'])
 def start_observer():
     """
@@ -161,6 +168,8 @@ def start_observer():
     global observer_thread, observer_running
     if observer_running:
         return jsonify({"status": "already running"}), 400
+
+    clear_session_details()  # Clear session details before starting a new task
 
     start = int(request.json.get("start", 0))
     end = int(request.json.get("end", 1000))
@@ -184,13 +193,27 @@ def stop_observer():
 def clean_logs():
     """
     API endpoint to clean the log directory.
-    It deletes all files in the specified directory.
+    It deletes all files in the specified directory and clears session details.
     """
+    clear_session_details()  # Clear session details when cleaning logs
+
     for filename in os.listdir(log_directory):
         file_path = os.path.join(log_directory, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
     return jsonify({"status": "cleaned"}), 200
+
+@app.route('/status', methods=['GET'])
+def get_status():
+    """
+    API endpoint to get the current status of the observer.
+    It returns whether the observer is running and the current session details.
+    """
+    current_status = {
+        "running": observer_running,
+        "current_session": session_details[-1] if session_details else None
+    }
+    return jsonify(current_status), 200
 
 @app.route('/save', methods=['POST'])
 def save_session():
