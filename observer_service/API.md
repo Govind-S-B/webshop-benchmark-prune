@@ -64,6 +64,14 @@
 **Responses:**
 - `200 OK` - Returns the zip file of the saved session logs.
 
+### Get Status
+**URL:** `/status`  
+**Method:** `GET`  
+**Description:** Returns the current status of the observer, including whether it is running and the current session details.
+
+**Responses:**
+- `200 OK` - Returns the current status of the observer.
+
 ## Example Usage
 
 ### Start Observer
@@ -89,4 +97,9 @@ curl -X POST http://<host>:5000/save -H "Content-Type: application/json" -d '{"n
 ### Get Session
 ```bash
 curl -X GET "http://<host>:5000/get?name=session_name"
+```
+
+### Get Status
+```bash
+curl -X GET http://<host>:5000/status
 ```
