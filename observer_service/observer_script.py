@@ -91,15 +91,28 @@ def write_csv():
         writer.writerows(session_details)
     print(f"Session details written to {csv_file}")
 
+def update_session_details(duration, termination_reason, navigation_steps, session_score):
+    """
+    Function to update the session details in the session details list.
+    """
+    if session_details:
+        session_details[-1]["duration"] = duration
+        session_details[-1]["session_termination_reason"] = termination_reason
+        session_details[-1]["navigation_steps"] = navigation_steps
+        session_details[-1]["session_score"] = session_score
+
 def monitor_log(nfig_session_id, session_id):
     log_file = os.path.join(log_directory, f"{session_id}.jsonl")
     start_time = time.time()
     timeout = 5 * 60  # 5 minutes in seconds
+    navigation_steps = 0
+    session_score = None
 
     while observer_running:
         if os.path.exists(log_file):
             with open(log_file, 'r') as f:
                 logs = f.readlines()
+                navigation_steps = len(logs)
                 if logs:
                     last_log = json.loads(logs[-1])
                     if last_log.get('page') == 'done':
@@ -107,12 +120,24 @@ def monitor_log(nfig_session_id, session_id):
                         print("stop") # [API REQ] this will in production call an API to my server to terminate a task
 
                         stop_workflow(nfig_session_id)
+                        end_time = time.time()
+                        session_duration = end_time - start_time
+                        session_score = last_log.get('reward', None)
+                        update_session_details(session_duration, "completed", navigation_steps, session_score)
                         break
 
         # Check for timeout
         if time.time() - start_time > timeout:
             print(f"Timeout reached for session {session_id}")
             stop_workflow(nfig_session_id)
+            end_time = time.time()
+            session_duration = end_time - start_time
+            # Measure the number of lines in the log file for timeout case
+            if os.path.exists(log_file):
+                with open(log_file, 'r') as f:
+                    logs = f.readlines()
+                    navigation_steps = len(logs)
+            update_session_details(session_duration, "timeout", navigation_steps, None)
             break
 
         time.sleep(1)
@@ -126,6 +151,7 @@ def observer_task(session_ids):
     
     for session_id in session_ids:
         if not observer_running:
+            update_session_details(0, "stopped", 0, None)
             break
         print(f"Running session: {session_id}")
         url = generate_display_url(session_id)
@@ -149,11 +175,15 @@ def observer_task(session_ids):
         session_details.append({
             "session_id": session_id,
             "url": url,
-            "nfig_session_id": nfig_session_id
+            "nfig_session_id": nfig_session_id,
+            "duration": 0,  # Initialize duration to 0
+            "session_termination_reason": "in_progress",  # Initialize termination reason
+            "navigation_steps": 0,  # Initialize navigation steps
+            "session_score": None  # Initialize session score
         })
 
         print("Waiting for user to navigate...")
-        monitor_log(nfig_session_id,session_id)
+        monitor_log(nfig_session_id, session_id)
 
         print("Moving to next session")
 
@@ -166,7 +196,7 @@ def observer_task(session_ids):
 
     observer_running = False
     print("Observer task completed.")
-    write_csv()
+    write_csv()    
     
 def clear_session_details():
     """
