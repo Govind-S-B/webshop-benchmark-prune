@@ -156,6 +156,14 @@ def observer_task(session_ids):
         monitor_log(nfig_session_id,session_id)
 
         print("Moving to next session")
+
+    termination_cause_file = os.path.join(log_directory, "observer_termination_cause")
+    with open(termination_cause_file, "w") as file:
+        if observer_running:
+            file.write("completed")
+        else:
+            file.write("stopped")
+
     observer_running = False
     print("Observer task completed.")
     write_csv()
@@ -213,6 +221,12 @@ def clean_logs():
         file_path = os.path.join(log_directory, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
+
+    # Delete the observer_termination_cause file if it exists
+    termination_cause_file = os.path.join(log_directory, "observer_termination_cause")
+    if os.path.exists(termination_cause_file):
+        os.remove(termination_cause_file)
+
     return jsonify({"status": "cleaned"}), 200
 
 @app.route('/status', methods=['GET'])
@@ -221,9 +235,16 @@ def get_status():
     API endpoint to get the current status of the observer.
     It returns whether the observer is running and the current session details.
     """
+    termination_cause = None
+    termination_cause_file = os.path.join(log_directory, "observer_termination_cause")
+    if os.path.exists(termination_cause_file):
+        with open(termination_cause_file, "r") as file:
+            termination_cause = file.read().strip()
+
     current_status = {
         "running": observer_running,
-        "current_session": session_details[-1] if session_details else None
+        "current_session": session_details[-1] if session_details else None,
+        "termination_cause": termination_cause
     }
     return jsonify(current_status), 200
 

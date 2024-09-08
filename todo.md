@@ -1,8 +1,11 @@
 # OBSERVER SERVICE
 - ADD TO DOCS : if a issue comes with docker volumes being downloaded and this causeing an issue , then just delete the prev dataset source and the entrypoint script will resolve stuff
+- ADD TO DOCS : tip test out /abc before kicking off a new session after a fresh deployment up
 - ADD TO DOCS: add timeout support to API docs relevant to stopping , session id list for start endpoint supposrt add to API docs
-- file dump  reason of stoping as well - stop endpoint , full completion
+- file dump as stop_reason reason of stoping as well - stop endpoint , full completion
 - measure time in csv dump for nfig session id 
+- add to csv each session stop reason - timeout , complete , manual_stop
+- add to csv for each record : stop_reason , time, step count ( lines - 1 ) reward , reward-types-1 ... ,  
 
 # SCORING SCRIPT
 - uses our observer endpoint , gets the data
