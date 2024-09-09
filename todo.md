@@ -19,3 +19,6 @@ analytics api from portkey - contains time duration as well ~ Maneesh chetan
 # TRIMMING DEBUGGER SCRIPT
 - I could write an endpoint to iterate through the entire list and then get goals that are valid and their fixed urls ( this is for debugging )
 - Test out if 2x 10k batches has less goals than 1x 20k batches. Try out similar combinations after trimming to see if goals lost in between have a pattern, if no pattern then we eed to compute the relations between datasets to trim them.
+
+None in csv not written - handle commas explicitly
+termination status stopped even after good complete completion , no completed satus is ever written 

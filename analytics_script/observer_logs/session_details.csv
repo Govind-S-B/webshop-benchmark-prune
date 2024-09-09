@@ -1,0 +1,7 @@
+session_id,url,nfig_session_id,duration,session_termination_reason,navigation_steps,session_score
+fixed_0,https://webshop.nfig.ai/fixed_0,6d4ca9a4-c55b-4b00-951d-b8476c072649,300.53933024406433,timeout,2,
+fixed_1,https://webshop.nfig.ai/fixed_1,41e9c6c7-798e-4d35-86f6-8aed55accada,300.5693483352661,timeout,12,
+fixed_2,https://webshop.nfig.ai/fixed_2,95c2d706-b304-4f23-9d53-65fc10f4e295,29.182317972183228,completed,5,0.5
+fixed_3,https://webshop.nfig.ai/fixed_3,dbb3d415-0b71-4068-92d8-b73f7fd6cb83,25.179293394088745,completed,5,0.75
+fixed_4,https://webshop.nfig.ai/fixed_4,81c4df54-7fd0-4c32-99d7-6606fc2edc8e,21.183207035064697,completed,5,1.0
+fixed_5,https://webshop.nfig.ai/fixed_5,db62d9d8-c21d-4b82-8469-8ae529469843,40.19923496246338,completed,7,0.6666666666666666
