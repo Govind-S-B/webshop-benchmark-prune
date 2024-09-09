@@ -1,10 +1,8 @@
 import csv
 import json
 import os
-import requests
 from collections import defaultdict
 from statistics import mean
-import time
 
 # Function to read CSV file
 def read_csv(file_path):
@@ -17,50 +15,15 @@ def read_jsonl(file_path):
     with open(file_path, mode='r') as file:
         return [json.loads(line) for line in file]
 
-# Function to create a log export
-def create_log_export(api_key, workspace_id, trace_id):
-    url = "https://api.portkey.ai/v1/logs/exports"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "workspace_id": workspace_id,
-        "filters": {
-            "trace_id": trace_id
-        },
-        "requested_data": ["trace_id", "logs"]
-    }
-    response = requests.post(url, headers=headers, json=data)
-    return response.json()
-
-# Function to start a log export
-def start_log_export(api_key, export_id):
-    url = f"https://api.portkey.ai/v1/logs/exports/{export_id}/start"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    response = requests.post(url, headers=headers)
-    return response.json()
-
-# Function to download a log export
-def download_log_export(api_key, export_id):
-    url = f"https://api.portkey.ai/v1/logs/exports/{export_id}/download"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    response = requests.get(url, headers=headers)
-    return response.json()
-
 # Function to process session details and observer logs
-def process_sessions(session_details, observer_logs_dir, portkey_api_key, workspace_id):
+def process_sessions(session_details, observer_logs_dir, portkey_data):
     completed_sessions = []
     timeout_sessions = []
     all_sessions = []
 
     page_visits = defaultdict(lambda: {'all': 0, 'completed': 0, 'timeout': 0})
+    total_tokens = 0
+    total_cost = 0.0
 
     for session in session_details:
         session_id = session['session_id']
@@ -69,17 +32,18 @@ def process_sessions(session_details, observer_logs_dir, portkey_api_key, worksp
 
         if os.path.exists(log_file_path):
             log_contents = read_jsonl(log_file_path)
-            print(f"CSV Record: {session}")
-            print(f"Log Contents: {log_contents}")
+            print("-" * 50)
+            print(f"CSV Record:\n{json.dumps(session, indent=4)}\n")
+            print(f"Log Contents:\n{json.dumps(log_contents, indent=4)}\n")
 
-            # Create, start, and download Portkey log export
-            export_info = create_log_export(portkey_api_key, workspace_id, trace_id)
-            print(export_info)
-            export_id = export_info['id']
-            start_log_export(portkey_api_key, export_id)
-            time.sleep(5)  # Wait for the export to be ready
-            portkey_info = download_log_export(portkey_api_key, export_id)
-            print(f"Portkey Info for Trace ID {trace_id}: {portkey_info}")
+            # Find matching Portkey data
+            portkey_info = [entry for entry in portkey_data if entry['TRACE ID'] == trace_id]
+            print(f"Portkey Info for Trace ID {trace_id}:\n{json.dumps(portkey_info, indent=4)}\n")
+
+            # Update tokens and cost
+            for entry in portkey_info:
+                total_tokens += int(entry['TOKENS'])
+                total_cost += float(entry['COST'].split()[0])
 
             # Update page visits
             for log in log_contents:
@@ -97,10 +61,10 @@ def process_sessions(session_details, observer_logs_dir, portkey_api_key, worksp
             elif session['session_termination_reason'] == 'timeout':
                 timeout_sessions.append(session)
 
-    return all_sessions, completed_sessions, timeout_sessions, page_visits
+    return all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost
 
 # Function to print summary statistics
-def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits):
+def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost):
     print(f"Total Sessions: {len(all_sessions)}")
     print(f"Completed Sessions: {len(completed_sessions)}")
     print(f"Timeout Sessions: {len(timeout_sessions)}")
@@ -123,6 +87,9 @@ def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visit
         print(f"Success Ratio (All Sessions): {success_ratio_all}")
         print(f"Success Ratio (Completed Sessions): {success_ratio_completed}")
 
+    print(f"Total Tokens Used: {total_tokens}")
+    print(f"Total Cost: {total_cost} cents")
+
     print("Page Visits:")
     for page, counts in page_visits.items():
         print(f"{page}: All: {counts['all']}, Completed: {counts['completed']}, Timeout: {counts['timeout']}")
@@ -131,12 +98,12 @@ def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visit
 def main():
     session_details_file = 'analytics_script/observer_logs/session_details.csv'
     observer_logs_dir = 'analytics_script/observer_logs'
-    portkey_api_key = 'YOUR_PORTKEY_API_KEY'  # Replace with your actual Portkey API key
-    workspace_id = 'YOUR_WORKSPACE_ID'  # Replace with your actual workspace ID
+    portkey_csv_file = 'analytics_script/observer_logs/portkey.csv'
 
     session_details = read_csv(session_details_file)
-    all_sessions, completed_sessions, timeout_sessions, page_visits = process_sessions(session_details, observer_logs_dir, portkey_api_key, workspace_id)
-    print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits)
+    portkey_data = read_csv(portkey_csv_file)
+    all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost = process_sessions(session_details, observer_logs_dir, portkey_data)
+    print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost)
 
 if __name__ == "__main__":
     main()
