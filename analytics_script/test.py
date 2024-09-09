@@ -4,6 +4,7 @@ import os
 import requests
 from collections import defaultdict
 from statistics import mean
+import time
 
 # Function to read CSV file
 def read_csv(file_path):
@@ -16,9 +17,36 @@ def read_jsonl(file_path):
     with open(file_path, mode='r') as file:
         return [json.loads(line) for line in file]
 
-# Function to get Portkey information
-def get_portkey_info(trace_id, api_key):
-    url = f"https://api.portkey.ai/v1/traces/{trace_id}"
+# Function to create a log export
+def create_log_export(api_key, workspace_id, trace_id):
+    url = "https://api.portkey.ai/v1/logs/exports"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "workspace_id": workspace_id,
+        "filters": {
+            "trace_id": trace_id
+        },
+        "requested_data": ["trace_id", "logs"]
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+
+# Function to start a log export
+def start_log_export(api_key, export_id):
+    url = f"https://api.portkey.ai/v1/logs/exports/{export_id}/start"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    response = requests.post(url, headers=headers)
+    return response.json()
+
+# Function to download a log export
+def download_log_export(api_key, export_id):
+    url = f"https://api.portkey.ai/v1/logs/exports/{export_id}/download"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
@@ -27,7 +55,7 @@ def get_portkey_info(trace_id, api_key):
     return response.json()
 
 # Function to process session details and observer logs
-def process_sessions(session_details, observer_logs_dir, portkey_api_key):
+def process_sessions(session_details, observer_logs_dir, portkey_api_key, workspace_id):
     completed_sessions = []
     timeout_sessions = []
     all_sessions = []
@@ -36,6 +64,7 @@ def process_sessions(session_details, observer_logs_dir, portkey_api_key):
 
     for session in session_details:
         session_id = session['session_id']
+        trace_id = session['nfig_session_id']
         log_file_path = os.path.join(observer_logs_dir, f"{session_id}.jsonl")
 
         if os.path.exists(log_file_path):
@@ -43,12 +72,14 @@ def process_sessions(session_details, observer_logs_dir, portkey_api_key):
             print(f"CSV Record: {session}")
             print(f"Log Contents: {log_contents}")
 
-            # Dump Portkey information
-            for log in log_contents:
-                trace_id = log.get('trace_id')
-                if trace_id:
-                    portkey_info = get_portkey_info(trace_id, portkey_api_key)
-                    print(f"Portkey Info for Trace ID {trace_id}: {portkey_info}")
+            # Create, start, and download Portkey log export
+            export_info = create_log_export(portkey_api_key, workspace_id, trace_id)
+            print(export_info)
+            export_id = export_info['id']
+            start_log_export(portkey_api_key, export_id)
+            time.sleep(5)  # Wait for the export to be ready
+            portkey_info = download_log_export(portkey_api_key, export_id)
+            print(f"Portkey Info for Trace ID {trace_id}: {portkey_info}")
 
             # Update page visits
             for log in log_contents:
@@ -101,9 +132,10 @@ def main():
     session_details_file = 'analytics_script/observer_logs/session_details.csv'
     observer_logs_dir = 'analytics_script/observer_logs'
     portkey_api_key = 'YOUR_PORTKEY_API_KEY'  # Replace with your actual Portkey API key
+    workspace_id = 'YOUR_WORKSPACE_ID'  # Replace with your actual workspace ID
 
     session_details = read_csv(session_details_file)
-    all_sessions, completed_sessions, timeout_sessions, page_visits = process_sessions(session_details, observer_logs_dir, portkey_api_key)
+    all_sessions, completed_sessions, timeout_sessions, page_visits = process_sessions(session_details, observer_logs_dir, portkey_api_key, workspace_id)
     print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits)
 
 if __name__ == "__main__":
