@@ -86,7 +86,7 @@ def write_csv():
     global session_details
     csv_file = os.path.join(log_directory, "session_details.csv")
     with open(csv_file, mode='w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=["session_id", "url", "nfig_session_id"])
+        writer = csv.DictWriter(file, fieldnames=["session_id", "url", "nfig_session_id", "duration", "session_termination_reason", "navigation_steps", "session_score"])
         writer.writeheader()
         writer.writerows(session_details)
     print(f"Session details written to {csv_file}")
