@@ -43,7 +43,7 @@ def fetch_instruction(session_id):
 API_KEY = os.environ.get('NFIG_API_KEY')
 
 def create_workflow(goal):
-    url = "https://api-dev.nfig.ai/external-apis/request/workflow/autonomous/create"
+    url = "https://api-staging.nfig.ai/external-apis/request/workflow/autonomous/create"
     headers = {
         'api-key': API_KEY,
         'Content-Type': 'application/json'
@@ -57,7 +57,7 @@ def create_workflow(goal):
     return None
 
 def run_workflow(workflow_id):
-    url = "https://api-dev.nfig.ai/external-apis/request/workflow/autonomous/run"
+    url = "https://api-staging.nfig.ai/external-apis/request/workflow/autonomous/run"
     headers = {
         'api-key': API_KEY,
         'Content-Type': 'application/json'
@@ -71,7 +71,7 @@ def run_workflow(workflow_id):
     return None
 
 def stop_workflow(session_id):
-    url = f"https://api-dev.nfig.ai/external-apis/request/workflow/autonomous/stop/{session_id}"
+    url = f"https://api-staging.nfig.ai/external-apis/request/workflow/autonomous/stop/{session_id}"
     headers = {
         'api-key': API_KEY,
         'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ def update_session_details(duration, termination_reason, navigation_steps, sessi
 def monitor_log(nfig_session_id, session_id):
     log_file = os.path.join(log_directory, f"{session_id}.jsonl")
     start_time = time.time()
-    timeout = 5 * 60  # 5 minutes in seconds
+    timeout = 2 * 60  # 5 minutes in seconds
     navigation_steps = 0
     session_score = None
 
@@ -157,7 +157,7 @@ def observer_task(session_ids):
         url = generate_display_url(session_id)
         print(f"Generated URL: {url}") # [API REQ] this will in production make an API call to my server to init a task
 
-        workflow_id = create_workflow(f"Go to {url} and follow the instruction mentioned there to complete the order on the platform")
+        workflow_id = create_workflow(f"go to {url} which is an ecommerce website, Follow the instruction on screen,& complete the purchase, Make sure that all respective choices of the product specifcation are chosen in product details page. view a product details click on the product ID.")
 
         instruction = fetch_instruction(session_id)
         if instruction:
