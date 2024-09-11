@@ -63,5 +63,5 @@ def extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_ord
 # Example usage
 zip_folder = 'analytics_script/observer_zips'
 observer_logs_folder = 'analytics_script/observer_logs'
-zip_file_order = ['0_20_run.zip', '21_50_run.zip']
+zip_file_order = ['0_20_run.zip', '21_50_run.zip', '51_200_run.zip']
 extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_order)
