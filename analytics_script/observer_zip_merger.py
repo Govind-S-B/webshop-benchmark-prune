@@ -7,6 +7,14 @@ def extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_ord
     # Create observer_logs_folder if it doesn't exist
     if not os.path.exists(observer_logs_folder):
         os.makedirs(observer_logs_folder)
+    else:
+        # Clear the contents of the observer_logs_folder
+        for filename in os.listdir(observer_logs_folder):
+            file_path = os.path.join(observer_logs_folder, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
     
     # Initialize an empty list to hold dataframes for merging CSVs
     dataframes = []
@@ -36,7 +44,7 @@ def extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_ord
                         # Read and append session_details.csv to the list of dataframes
                         df = pd.read_csv(file_path)
                         if dataframes:
-                            df = df[1:]  # Remove header if not the first file
+                            df = df[:]  # Remove header if not the first file
                         dataframes.append(df)
                     
                     elif file == 'observer_termination_cause':
@@ -53,7 +61,7 @@ def extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_ord
     shutil.rmtree(temp_extract_folder)
 
 # Example usage
-zip_folder = 'path/to/observer_zips'
-observer_logs_folder = 'path/to/observer_logs'
-zip_file_order = ['run_1.zip', 'trial2.zip']
+zip_folder = 'analytics_script/observer_zips'
+observer_logs_folder = 'analytics_script/observer_logs'
+zip_file_order = ['0_20_run.zip', '21_50_run.zip']
 extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_order)

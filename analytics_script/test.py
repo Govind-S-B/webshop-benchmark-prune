@@ -164,7 +164,7 @@ def main():
     else:
         portkey_data = []  # Initialize to empty list if file doesn't exist
     
-    with open('report.txt', 'w') as output_file:
+    with open('analytics_script/report.txt', 'w') as output_file:
         all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost = process_sessions(session_details, observer_logs_dir, portkey_data, output_file)
         print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, output_file)
         print_current_config(output_file)

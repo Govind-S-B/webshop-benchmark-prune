@@ -18,3 +18,4 @@ transfer/flagged
 *_err_*.log
 
 .env
+analytics_script/observer_logs
