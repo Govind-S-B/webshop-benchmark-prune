@@ -1850,3 +1850,51 @@ search_results: All: 10, Completed: 5, Timeout: 5
 item_page: All: 5, Completed: 4, Timeout: 1
 done: All: 4, Completed: 4, Timeout: 0
 ==================================================
+==================================================
+Current Config Used
+==================================================
+{
+    "planner": {
+        "model": "openai/gpt_4o_v2",
+        "active": true,
+        "temperature": 0.2,
+        "top_p": 1,
+        "max_tokens": 1024,
+        "vision": true
+    },
+    "verifier": {
+        "model": "openai/gpt_4o_v2",
+        "active": true,
+        "temperature": 0,
+        "top_p": 1,
+        "max_tokens": 1024
+    },
+    "sub_goal": {
+        "model": "openai/gpt_4o_v2",
+        "iter_count": 10,
+        "temperature": 0.2,
+        "top_p": 1,
+        "max_tokens": 4096,
+        "tools": {
+            "read": {
+                "model": "openai/gpt_4o_mini",
+                "temperature": 0,
+                "max_tokens": 4096,
+                "top_p": 1
+            },
+            "send_email": {
+                "model": "openai/gpt_4o_mini",
+                "temperature": 0,
+                "max_tokens": 4096,
+                "top_p": 1
+            }
+        }
+    },
+    "intent": {
+        "model": "openai/gpt_4o_mini",
+        "temperature": 0.5,
+        "top_p": 1,
+        "max_tokens": 1024
+    }
+}
+==================================================
