@@ -10,7 +10,7 @@ services:
       - ./user_session_logs:/app/user_session_logs 
       - ./data:/app/data
     environment:
-      DATASET_SOURCE: "small" # Could be small | all
+      DATASET_SOURCE: "all" # Could be small | all
 
   log-observer:
     build:
