@@ -5,6 +5,7 @@
 - ADD TO DOCS : support for termination cause in status anc cleanup endpoints
 - ADD TO DOCS : metrics captured in csv file
 
+- create new endpoint delete saved
 - add support for stop reason as error in API or some other exception ( each session or full observation )
 
 # SCORING SCRIPT

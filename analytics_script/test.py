@@ -111,8 +111,8 @@ def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visit
         output_file.write(f"Average Tokens in Completed Sessions: {avg_completed_tokens}\n\n")
 
         success_sessions = [session for session in completed_sessions if float(session['session_score']) == 1.0]
-        success_ratio_all = len(success_sessions) / len(all_sessions)
-        success_ratio_completed = len(success_sessions) / len(completed_sessions)
+        success_ratio_all = len(success_sessions) / len(all_sessions) if all_sessions else 0
+        success_ratio_completed = len(success_sessions) / len(completed_sessions) if completed_sessions else 0
         output_file.write(f"Success Ratio (All Sessions): {success_ratio_all}\n")
         output_file.write(f"Success Ratio (Completed Sessions): {success_ratio_completed}\n\n")
 
@@ -157,7 +157,12 @@ def main():
     portkey_csv_file = 'analytics_script/observer_logs/portkey.csv'
 
     session_details = read_csv(session_details_file)
-    portkey_data = read_csv(portkey_csv_file)
+    
+    # Check if portkey.csv exists
+    if os.path.exists(portkey_csv_file):
+        portkey_data = read_csv(portkey_csv_file)
+    else:
+        portkey_data = []  # Initialize to empty list if file doesn't exist
     
     with open('report.txt', 'w') as output_file:
         all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost = process_sessions(session_details, observer_logs_dir, portkey_data, output_file)
