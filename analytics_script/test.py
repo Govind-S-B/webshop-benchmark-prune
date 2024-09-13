@@ -24,6 +24,7 @@ def process_sessions(session_details, observer_logs_dir, portkey_data, output_fi
     page_visits = defaultdict(lambda: {'all': 0, 'completed': 0, 'timeout': 0})
     total_tokens = 0
     total_cost = 0.0
+    total_time = 0.0  # Initialize total time
 
     for session in session_details:
         session_id = session['session_id']
@@ -71,6 +72,9 @@ def process_sessions(session_details, observer_logs_dir, portkey_data, output_fi
             elif session['session_termination_reason'] == 'timeout':
                 timeout_sessions.append(session)
 
+            # Add session duration to total time
+            total_time += float(session['duration'])
+
             # Detailed session information in log dump
             output_file.write(f"Session ID: {session['session_id']}\n")
             output_file.write(f"Portkey Match Count: {session['portkey_match_count']}\n")
@@ -79,10 +83,10 @@ def process_sessions(session_details, observer_logs_dir, portkey_data, output_fi
             output_file.write(f"Page Visits: {json.dumps(session['session_page_visits'], indent=4)}\n")
             output_file.write("-" * 50 + "\n")
 
-    return all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost
+    return all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, total_time
 
 # Function to print summary statistics
-def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, output_file):
+def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, total_time, output_file):
     output_file.write("=" * 50 + "\n")
     output_file.write("Summary Statistics\n")
     output_file.write("=" * 50 + "\n")
@@ -117,7 +121,8 @@ def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visit
         output_file.write(f"Success Ratio (Completed Sessions): {success_ratio_completed}\n\n")
 
     output_file.write(f"Total Tokens Used: {total_tokens}\n")
-    output_file.write(f"Total Cost: {total_cost} cents\n\n")
+    output_file.write(f"Total Cost: {total_cost} cents\n")
+    output_file.write(f"Total Time: {total_time} seconds\n\n")  # Display total time
 
     output_file.write("Page Visits:\n")
     for page, counts in page_visits.items():
@@ -140,8 +145,8 @@ def main():
         portkey_data = []  # Initialize to empty list if file doesn't exist
     
     with open('analytics_script/report.txt', 'w') as output_file:
-        all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost = process_sessions(session_details, observer_logs_dir, portkey_data, output_file)
-        print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, output_file)
+        all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, total_time = process_sessions(session_details, observer_logs_dir, portkey_data, output_file)
+        print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, total_time, output_file)
         
         # Append config_used to the report
         if os.path.exists(config_used_file):
