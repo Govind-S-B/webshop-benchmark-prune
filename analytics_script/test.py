@@ -135,7 +135,7 @@ def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visit
     output_file.write("=" * 50 + "\n")
     buckets = [(0, 0.1), (0.1, 0.2), (0.2, 0.3), (0.3, 0.4), (0.4, 0.5), (0.5, 0.6), (0.6, 0.7), (0.7, 0.8), (0.8, 0.9), (0.9, 1), (1, 1.1)]
     for lower, upper in buckets:
-        bucket_sessions = [session for session in all_sessions if lower <= float(session['session_score']) < upper]
+        bucket_sessions = [session for session in all_sessions if session['session_score'] and lower <= float(session['session_score']) < upper]
         if bucket_sessions:
             avg_time = mean(float(session['duration']) for session in bucket_sessions)
             avg_steps = mean(int(session['navigation_steps']) for session in bucket_sessions)
