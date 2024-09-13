@@ -43,8 +43,6 @@ def extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_ord
                     elif file == 'session_details.csv':
                         # Read and append session_details.csv to the list of dataframes
                         df = pd.read_csv(file_path)
-                        if dataframes:
-                            df = df[:]  # Remove header if not the first file
                         dataframes.append(df)
                     
                     elif file == 'observer_termination_cause':
@@ -63,5 +61,5 @@ def extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_ord
 # Example usage
 zip_folder = 'analytics_script/observer_zips'
 observer_logs_folder = 'analytics_script/observer_logs'
-zip_file_order = ['0_20_run.zip', '21_50_run.zip', '51_200_run.zip']
+zip_file_order = ['0_20_run.zip', '21_50_run.zip', '51_200_run.zip', "201_500_run.zip"]
 extract_and_process_zip_files(zip_folder, observer_logs_folder, zip_file_order)
