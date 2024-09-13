@@ -130,6 +130,39 @@ def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visit
 
     output_file.write("=" * 50 + "\n")
 
+    # New section for bucketed results
+    output_file.write("Bucketed Results\n")
+    output_file.write("=" * 50 + "\n")
+    buckets = [(0, 0.1), (0.1, 0.2), (0.2, 0.3), (0.3, 0.4), (0.4, 0.5), (0.5, 0.6), (0.6, 0.7), (0.7, 0.8), (0.8, 0.9), (0.9, 1), (1, 1.1)]
+    for lower, upper in buckets:
+        bucket_sessions = [session for session in all_sessions if lower <= float(session['session_score']) < upper]
+        if bucket_sessions:
+            avg_time = mean(float(session['duration']) for session in bucket_sessions)
+            avg_steps = mean(int(session['navigation_steps']) for session in bucket_sessions)
+            avg_score = mean(float(session['session_score']) for session in bucket_sessions)
+            avg_cost = mean(session['session_cost'] for session in bucket_sessions)
+            avg_tokens = mean(session['session_tokens'] for session in bucket_sessions)
+            output_file.write(f"Bucket {lower} - {upper}:\n")
+            output_file.write(f"  Number of Sessions: {len(bucket_sessions)}\n")
+            output_file.write(f"  Average Time: {avg_time}\n")
+            output_file.write(f"  Average Steps: {avg_steps}\n")
+            output_file.write(f"  Average Score: {avg_score}\n")
+            output_file.write(f"  Average Cost: {avg_cost} cents\n")
+            output_file.write(f"  Average Tokens: {avg_tokens}\n")
+            output_file.write("  Page Visits:\n")
+            bucket_page_visits = defaultdict(lambda: {'all': 0, 'completed': 0, 'timeout': 0})
+            for session in bucket_sessions:
+                for page, visits in session['session_page_visits'].items():
+                    bucket_page_visits[page]['all'] += visits
+                    if session['session_termination_reason'] == 'completed':
+                        bucket_page_visits[page]['completed'] += visits
+                    elif session['session_termination_reason'] == 'timeout':
+                        bucket_page_visits[page]['timeout'] += visits
+            for page, counts in bucket_page_visits.items():
+                output_file.write(f"    {page}: All: {counts['all']}, Completed: {counts['completed']}, Timeout: {counts['timeout']}\n")
+            output_file.write("\n")
+    output_file.write("=" * 50 + "\n")
+
 def main():
     session_details_file = 'analytics_script/observer_logs/session_details.csv'
     observer_logs_dir = 'analytics_script/observer_logs'
