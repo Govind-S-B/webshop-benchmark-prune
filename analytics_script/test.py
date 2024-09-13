@@ -125,36 +125,11 @@ def print_summary(all_sessions, completed_sessions, timeout_sessions, page_visit
 
     output_file.write("=" * 50 + "\n")
 
-from dotenv import load_dotenv
-load_dotenv()
-import requests
-
-API_KEY = os.getenv('NFIG_API_KEY')
-print(API_KEY)
-
-
-# Function to fetch current config
-def fetch_current_config():
-    url = 'http://api-staging.nfig.ai/external-apis/request/org/config'
-    headers = {'api-key': API_KEY}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()  # Raise an error for bad status codes
-    return response.json()
-
-# Function to print current config
-def print_current_config(output_file):
-    config = fetch_current_config()
-    output_file.write("=" * 50 + "\n")
-    output_file.write("Current Config Used\n")
-    output_file.write("=" * 50 + "\n")
-    output_file.write(json.dumps(config, indent=4) + "\n")
-    output_file.write("=" * 50 + "\n")
-
-# Main function
 def main():
     session_details_file = 'analytics_script/observer_logs/session_details.csv'
     observer_logs_dir = 'analytics_script/observer_logs'
     portkey_csv_file = 'analytics_script/observer_logs/portkey.csv'
+    config_used_file = 'analytics_script/observer_logs/config_used'
 
     session_details = read_csv(session_details_file)
     
@@ -167,7 +142,16 @@ def main():
     with open('analytics_script/report.txt', 'w') as output_file:
         all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost = process_sessions(session_details, observer_logs_dir, portkey_data, output_file)
         print_summary(all_sessions, completed_sessions, timeout_sessions, page_visits, total_tokens, total_cost, output_file)
-        print_current_config(output_file)
+        
+        # Append config_used to the report
+        if os.path.exists(config_used_file):
+            with open(config_used_file, 'r') as config_file:
+                config_used = config_file.read()
+            output_file.write("\n" + "=" * 50 + "\n")
+            output_file.write("Config Used\n")
+            output_file.write("=" * 50 + "\n")
+            output_file.write(config_used + "\n")
+            output_file.write("=" * 50 + "\n")
 
 if __name__ == "__main__":
     main()
