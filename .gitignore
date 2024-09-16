@@ -1,7 +1,6 @@
 data
 user_session_logs
 
-*.ipynb*
 *.pyc
 *.swp
 

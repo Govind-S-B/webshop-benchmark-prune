@@ -20,11 +20,7 @@ def fetch_current_config():
 def print_current_config(output_file):
     config = fetch_current_config()
     with open(output_file, 'w') as config_file:
-        config_file.write("=" * 50 + "\n")
-        config_file.write("Current Config Used\n")
-        config_file.write("=" * 50 + "\n")
-        config_file.write(json.dumps(config, indent=4) + "\n")
-        config_file.write("=" * 50 + "\n")
+        json.dump(config, config_file, indent=4)
 
 def login(email, password):
     response = requests.post(LOGIN_URL, json={'email': email, 'password': password})
@@ -45,7 +41,7 @@ def set_new_config(token, config_file):
 def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == 'fetch':
-            print_current_config('analytics_script/config_used')
+            print_current_config('analytics_script/config_used.json')
         elif sys.argv[1] == 'set':
             email = input("Enter email: ")
             password = input("Enter password: ")
@@ -60,7 +56,7 @@ def main():
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            print_current_config('analytics_script/config_used')
+            print_current_config('analytics_script/config_used.json')
         elif choice == '2':
             email = input("Enter email: ")
             password = input("Enter password: ")

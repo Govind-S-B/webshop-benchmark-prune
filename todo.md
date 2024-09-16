@@ -9,4 +9,10 @@
 - add support for stop reason as error in API or some other exception ( each session or full observation )
 
 # SCORING SCRIPT
-- scraper for each trace ids or count of last n trace ids from portkey
+- scraper for each trace ids or count of last n trace ids from portkey or wait for API
+
+# METRICS
+- time taken per page nav or hop
+- API calls per session ( span count )
+- Number of span calls per type of span name ( ie, number of planner calls etc )
+- Token Consumption and Time for API calls  

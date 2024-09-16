@@ -89,7 +89,7 @@ def insert_session(conn, session):
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         session.get('session_id'),
-        session.get('trace_id'),
+        session.get('nfig_session_id'),
         session.get('session_termination_reason'),
         safe_float(session.get('duration', 0)),
         safe_int(session.get('portkey_match_count', 0)),
